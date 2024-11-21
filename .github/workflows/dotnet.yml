@@ -1,12 +1,27 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Release
 
 on: push
 
 jobs:
-  Build:
+  Build-Python:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+    - uses: abatilo/actions-poetry@v2
+    - name: Package xls converter
+      run: |
+        cd xls-converter/ &&\
+        poetry build -f wheel
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: xls-converter
+        path: xls-converter/dist
+  Build-Dot-Net:
     strategy:
       matrix:
         program: [Csv2FhirMapping, TestDataClient]
@@ -39,12 +54,29 @@ jobs:
           Sparked.${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}Output
   Release:
     if: contains(github.ref, 'tags/v')
-    needs: Build
+    needs:
+    - Build-Dot-Net
+    - Build-Python
     runs-on: ubuntu-latest
     steps:
     - name: Create release
       uses: softprops/action-gh-release@v2
-  Publish:
+  Publish-Python:
+    if: contains(github.ref, 'tags/v')
+    needs: Release
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: xls-converter
+        path: .
+    - name: Archive
+      run: zip -r xls-converter.zip .
+    - name: Upload archive
+      uses: softprops/action-gh-release@v2
+      with:
+          files: xls-converter.zip
+  Publish-Dot-Net:
     if: contains(github.ref, 'tags/v')
     needs: Release
     strategy:
