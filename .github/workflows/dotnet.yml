@@ -1,0 +1,87 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on: push
+
+jobs:
+  Build:
+    strategy:
+      matrix:
+        program: [Csv2FhirMapping, TestDataClient]
+        os: [win, linux]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Build ${{ matrix.program }} on ${{ matrix.os }}
+      run: |
+        dotnet publish Sparked.${{ matrix.program }}/Sparked.${{ matrix.program }}.csproj --arch x64 --os ${{ matrix.os }} --configuration Release -p:PublishSingleFile=True --framework net70 --self-contained true --output "Sparked.${{ matrix.program }}-${{ matrix.os }}Output"
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.program }}-${{ matrix.os }}-binaries
+        path: |
+          Sparked.${{ matrix.program }}-${{ matrix.os }}Output
+  Generate:
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Download Csv2FhirMapping
+      uses: actions/download-artifact@v4
+      with:
+        name: Csv2FhirMapping-linux-binaries
+        path: Sparked.Csv2FhirMapping
+    - name: Generate resources
+      # You may pin to the exact commit or the version.
+      # uses: daaku/gh-action-apt-install@92eea4f84f90c895b544aaec6ae21839127c84e5
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        # Packages to install.
+        packages:
+          libicu-dev
+          wget
+          default-jdk
+          xsltproc
+        execute_install_scripts: true
+    - run: |
+         mkdir generated
+         pushd .
+         cd linux
+         ./GenerateAll.sh
+         popd
+    - run: wget https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+    - run: |
+        java -jar validator_cli.jar generated/*.json \
+             -version 4.0.1 -tx https://tx.dev.hl7.org.au/fhir \
+             -ig hl7.fhir.au.core#0.4.0-preview  -sct au \
+             -level errors -jurisdiction au \
+             -html-output g_validation.html -output g_validation.xml
+    - run: xsltproc extract_error_files.xsl g_validation.xml > quarantine_errors.sh
+    - run: chmod +x quarantine_errors.sh
+    - run: ./quarantine_errors.sh
+    - name: Archive quarantine result
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-result
+        path: g_validation.*ml
+    - name: Archive generated resources
+      uses: actions/upload-artifact@v4
+      with:
+        name: generated-resources
+        path: generated
+    - run: zip -r testdata.zip generated
+      if: startsWith(github.ref, 'refs/tags/')
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: testdata.zip
