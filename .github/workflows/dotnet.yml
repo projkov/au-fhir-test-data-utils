@@ -22,6 +22,7 @@ jobs:
         name: xls-converter
         path: xls-converter/dist
   Build-Dot-Net:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         program: [Csv2FhirMapping, TestDataClient]
@@ -64,6 +65,7 @@ jobs:
   Publish-Python:
     if: contains(github.ref, 'tags/v')
     needs: Release
+    runs-on: ubuntu-latest
     steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
