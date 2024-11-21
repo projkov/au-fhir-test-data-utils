@@ -23,8 +23,6 @@ if __name__ == "__main__":
 
         process_sheet(sheet, df)
 
-        df.to_csv(
-            file_path, index=None, header=True, encoding="utf-8-sig", quotechar='"'
-        )
+        df.to_csv(file_path, index=None, header=True, encoding="utf-8-sig", lineterminator="\r\n" if sheet == 'MedicationRequest' else "\n")
 
         post_process_sheet(sheet, file_path)
