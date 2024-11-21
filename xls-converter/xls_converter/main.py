@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import argparse
 
 sheets = [
@@ -26,6 +27,7 @@ parser = argparse.ArgumentParser(
     description="Load XLSX file with test data and convert it to csvs",
 )
 parser.add_argument("filename")
+parser.add_argument("destination")
 
 
 def remove_time(data):
@@ -88,7 +90,8 @@ if __name__ == "__main__":
                     "asserter_reference_identifier_type.2": "asserter_reference_identifier_type",
                 }
             )
-        file_path = f"../testdata-csv/AU Core Sample Data - {sheet}.csv"
+        file_name = f"AU Core Sample Data - {sheet}.csv"
+        file_path = os.path.join(args.destination, file_name)
 
         df.to_csv(
             file_path, index=None, header=True, encoding="utf-8-sig", quotechar='"'
