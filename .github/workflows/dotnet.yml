@@ -28,7 +28,6 @@ jobs:
         program: [Csv2FhirMapping, TestDataClient]
         os: [win, linux]
         arch: [x64, arm64]
-    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
