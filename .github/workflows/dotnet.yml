@@ -23,13 +23,13 @@ jobs:
         dotnet-version: 8.0.x
     - name: Build ${{ matrix.program }} on ${{ matrix.os }}
       run: |
-        dotnet publish Sparked.${{ matrix.program }}/Sparked.${{ matrix.program }}.csproj
-               --arch ${{ matrix.arch }}
-               --os ${{ matrix.os }}
-               --configuration Release
-               -p:PublishSingleFile=True
-               --framework net70
-               --self-contained true
+        dotnet publish Sparked.${{ matrix.program }}/Sparked.${{ matrix.program }}.csproj \
+               --arch ${{ matrix.arch }} \
+               --os ${{ matrix.os }} \
+               --configuration Release \
+               -p:PublishSingleFile=True \
+               --framework net70 \
+               --self-contained true \
                --output "Sparked.${{ matrix.program }}-${{ matrix.os }}Output"
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
