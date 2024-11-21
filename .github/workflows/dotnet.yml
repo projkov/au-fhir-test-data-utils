@@ -37,3 +37,31 @@ jobs:
         name: ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}-binaries
         path: |
           Sparked.${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}Output
+  Release:
+    if: contains(github.ref, 'tags/v')
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create release
+      uses: softprops/action-gh-release@v2
+  Publish:
+    if: contains(github.ref, 'tags/v')
+    needs: Release
+     strategy:
+      matrix:
+        program: [Csv2FhirMapping, TestDataClient]
+        os: [win, linux]
+        arch: [x64, arm64]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}-binaries
+        path: ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}-binaries
+    - name: Archive
+      run: zip -r ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}.zip ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}-binaries
+    - name: Upload archive
+      uses: softprops/action-gh-release@v2
+      with:
+          files: ${{ matrix.program }}-${{ matrix.os }}-${{ matrix.arch }}.zip
