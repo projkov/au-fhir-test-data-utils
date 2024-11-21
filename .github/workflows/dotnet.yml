@@ -47,7 +47,7 @@ jobs:
   Publish:
     if: contains(github.ref, 'tags/v')
     needs: Release
-     strategy:
+    strategy:
       matrix:
         program: [Csv2FhirMapping, TestDataClient]
         os: [win, linux]
