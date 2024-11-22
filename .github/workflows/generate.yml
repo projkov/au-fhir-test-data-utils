@@ -1,6 +1,6 @@
 name: Convert
 
-on: workflow_dispatch
+on: push
 
 jobs:
   LoadNewCSV:
