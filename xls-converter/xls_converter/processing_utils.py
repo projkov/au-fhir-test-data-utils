@@ -1,4 +1,4 @@
-from constants import (
+from .constants import (
     ALLERGY_INTOLERANCE_REPLACE,
     HEALTHCARE_SERVICE_REPLACE,
     ORGANIZATION_REPLACE,

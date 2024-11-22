@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 import argparse
-from constants import SHEETS
-from processing_utils import process_sheet, post_process_sheet
+from .constants import SHEETS
+from .processing_utils import process_sheet, post_process_sheet
 
 parser = argparse.ArgumentParser(
     prog="Test Data converter",
@@ -15,6 +15,7 @@ parser.add_argument("destination")
 if __name__ == "__main__":
     args = parser.parse_args()
     xlsx = pd.ExcelFile(args.filename)
+    os.makedirs(args.destination, exist_ok=True)
     for sheet in SHEETS:
         file_name = f"AU Core Sample Data - {sheet}.csv"
         file_path = os.path.join(args.destination, file_name)
