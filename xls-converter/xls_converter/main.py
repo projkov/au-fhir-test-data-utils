@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 import argparse
-from constants import SHEETS
-from processing_utils import process_sheet, post_process_sheet
+from .constants import SHEETS
+from .processing_utils import process_sheet, post_process_sheet
 
 parser = argparse.ArgumentParser(
     prog="Test Data converter",
